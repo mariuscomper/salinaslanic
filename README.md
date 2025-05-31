@@ -2,6 +2,8 @@
 
 Aceasta este o prezentare interactivă HTML, realizată ca o aplicație web single-page, care detaliază evaluarea riscului de inundație la Salina Slănic Prahova, analizând contextul incidentului de la Salina Praid.
 
+**➡️ Accesați prezentarea live aici: [Salina Slănic - Evaluarea Riscurilor](https://mariuscomper.github.io/salinaslanic/prezentareslanic.html) ⬅️**
+
 ## Descriere
 
 Prezentarea explorează vulnerabilitățile hidrogeologice și de stabilitate ale Salinei Slănic Prahova, cu un focus special pe Mina Mihai și interacțiunea acesteia cu râul Slănic. Analiza include:
@@ -47,13 +49,22 @@ Prezentarea este structurată în slide-uri, navigabile printr-o interfață int
 
 ## Cum se Utilizează
 
-1.  Descărcați fișierul `salinaslanic.html`.
-2.  Deschideți fișierul `salinaslanic.html` în orice browser web modern (ex: Chrome, Firefox, Edge, Safari).
-3.  Navigați prin prezentare folosind:
+Prezentarea poate fi accesată în principal online sau descărcată pentru utilizare locală.
+
+**1. Acces Online (Recomandat):**
+*   Accesați direct în browser folosind următorul link:
+    [https://mariuscomper.github.io/salinaslanic/prezentareslanic.html](https://mariuscomper.github.io/salinaslanic/prezentareslanic.html)
+
+**2. Utilizare Locală:**
+1.  Descărcați fișierul `prezentareslanic.html` din repository.
+2.  Deschideți fișierul `prezentareslanic.html` în orice browser web modern (ex: Chrome, Firefox, Edge, Safari).
+
+**Odată ce prezentarea este deschisă (online sau local):**
+*   Navigați prin prezentare folosind:
     *   Butoanele "Anterior" / "Următor".
     *   Link-urile din cuprinsul din sidebar (partea stângă pe desktop, accesibil prin butonul meniu pe mobil).
     *   Tastele săgeată stânga/dreapta de pe tastatură.
-4.  Pentru a căuta un termen:
+*   Pentru a căuta un termen:
     *   Click pe iconița de căutare (lupă) din colțul dreapta-sus.
     *   Introduceți termenul în câmpul de căutare.
     *   Click pe un rezultat pentru a naviga la slide-ul respectiv.
