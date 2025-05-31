@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prezentare: Riscuri Salina Slănic Prahova</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior-y: contain;
+            background-color: #f0f4f8;
+        }
+        .slide {
+            display: none;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            /* height: 100% va fi pe .active */
+        }
+        .slide.active {
+            display: flex; /* Activăm Flexbox */
+            flex-direction: column; /* Copiii se vor aranja vertical */
+            opacity: 1;
+            transform: translateX(0);
+            height: 100%; /* Punctul cheie: Slide-ul activ umple containerul părinte */
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .slide {
+                transition: none;
+                transform: none;
+            }
+        }
+
+        /* Wrapper pentru conținutul principal al slide-ului, pentru a gestiona scroll-ul intern */
+        .slide-content-wrapper {
+            flex-grow: 1; /* Permite acestui wrapper să crească și să umple spațiul vertical disponibil */
+            overflow-y: auto; /* Adaugă scrollbar vertical dacă conținutul depășește */
+            min-height: 0; /* Necesar pentru copiii flex cu overflow pentru a funcționa corect */
+            /* Padding-ul este adăugat prin clase Tailwind în JS */
+        }
+
+        /* Stiluri pentru scrollbar-ul intern al slide-content-wrapper (consistent cu altele) */
+        .slide-content-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+        .slide-content-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .slide-content-wrapper::-webkit-scrollbar-thumb {
+            background: #a0aec0; /* Un gri mai deschis pentru scrollbar-ul intern */
+            border-radius: 10px;
+        }
+        .slide-content-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #718096; /* Un gri mai închis la hover */
+        }
+
+        /* Container pentru numărul paginii */
+        .page-number-container {
+            padding: 0.5rem; /* Tailwind: p-2 */
+            text-align: center;
+            flex-shrink: 0; /* Previne micșorarea containerului numărului de pagină */
+        }
+
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        #sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        #sidebar::-webkit-scrollbar-track {
+            background: #e0e7ff;
+            border-radius: 10px;
+        }
+        #sidebar::-webkit-scrollbar-thumb {
+            background: #6366f1;
+            border-radius: 10px;
+        }
+        #sidebar::-webkit-scrollbar-thumb:hover {
+            background: #4f46e5;
+        }
+        .highlight {
+            background-color: yellow;
+            font-weight: bold;
+        }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+        .modal.hidden .modal-content {
+           transform: translateY(-20px);
+        }
+        .nav-button {
+            background-color: #4f46e5;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .nav-button:hover {
+            background-color: #4338ca;
+            transform: translateY(-1px);
+        }
+        .nav-button:active {
+            transform: translateY(0px);
+        }
+        .nav-button:disabled {
+            background-color: #a5b4fc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .sidebar-button {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            color: #374151;
+            font-weight: 500;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        }
+        .sidebar-button:hover {
+            background-color: #e0e7ff;
+            color: #312e81;
+        }
+        .sidebar-button.active-sidebar-link {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row h-screen overflow-hidden">
+
+    <div id="sidebar-container" class="w-full md:w-72 bg-indigo-50 text-gray-800 p-4 shadow-lg overflow-y-auto transition-transform duration-300 ease-in-out md:translate-x-0 -translate-x-full fixed md:static h-full z-20">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-bold text-indigo-700">Cuprins</h1>
+            <button id="close-sidebar-btn" class="md:hidden text-indigo-600 hover:text-indigo-800">
+                <i class="fas fa-times fa-lg"></i>
+            </button>
+        </div>
+        <nav id="sidebar" class="space-y-2"></nav>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white p-3 shadow-md flex justify-between items-center">
+            <button id="menu-btn" class="md:hidden text-indigo-600 p-2 rounded hover:bg-indigo-100">
+                <i class="fas fa-bars fa-lg"></i>
+            </button>
+            <div class="text-sm font-semibold text-indigo-700 hidden sm:block">Prezentare Riscuri Salina Slănic</div>
+            <div class="flex items-center space-x-2">
+                <button id="search-btn" class="text-indigo-600 p-2 rounded hover:bg-indigo-100" aria-label="Caută">
+                    <i class="fas fa-search"></i>
+                </button>
+                <span id="current-slide-indicator" class="text-sm text-gray-600"></span>
+            </div>
+        </header>
+
+        <main id="slides-container" class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-gray-100">
+            <!-- Slide-urile vor fi adăugate aici de JavaScript -->
+        </main>
+
+        <footer class="bg-white p-3 shadow-inner mt-auto">
+            <div class="max-w-4xl mx-auto">
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-3">
+                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <button id="prev-slide" class="nav-button" aria-label="Slide Anterior">
+                        <i class="fas fa-arrow-left mr-2"></i>Anterior
+                    </button>
+                    <button id="next-slide" class="nav-button" aria-label="Slide Următor">
+                        Următor<i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="search-modal" class="modal hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50">
+        <div class="modal-content bg-white p-6 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-semibold text-indigo-700">Caută în prezentare</h3>
+                <button id="close-search-modal-btn" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times fa-lg"></i>
+                </button>
+            </div>
+            <input type="text" id="search-input" placeholder="Introduceți termenul de căutare..." class="w-full p-2 border border-gray-300 rounded-md mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <div id="search-modal-results-list" class="overflow-y-auto space-y-2 flex-grow" aria-live="polite">
+                <!-- Rezultatele căutării vor fi adăugate aici -->
+            </div>
+            <p id="no-results-msg" class="text-gray-500 hidden mt-2" aria-live="polite">Niciun rezultat găsit.</p>
+        </div>
+    </div>
+
+<script>
+    const slidesData = [
+        {
+            title: "Pagina de Titlu",
+            content: `
+                <div class="text-center">
+                    <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-indigo-800 mb-6">Evaluarea Riscului de Inundație la Salina Slănic Prahova</h1>
+                    <p class="text-lg md:text-xl text-gray-700 mb-4">În Contextul Incidentului de la Salina Praid</p>
+                    <p class="text-md text-gray-600">O Analiză Hidrogeologică și de Stabilitate</p>
+                    <p class="text-sm text-gray-500 mt-12">Mai 2025</p>
+                </div>
+            `
+        },
+        {
+            title: "Rezumat Executiv",
+            content: `
+                <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                    <li>Incidentul de la Salina Praid (mai 2025) a generat îngrijorări privind siguranța altor saline, inclusiv Slănic Prahova.</li>
+                    <li>Salina Slănic are un istoric de vulnerabilitate la infiltrații (ex: inundația din 1994, incidente recente).</li>
+                    <li>Mina Mihai, situată sub râul Slănic, este un punct critic.</li>
+                    <li>Eficacitatea lucrărilor de protecție din trecut (betonarea albiei) este incertă fără date recente.</li>
+                    <li>Comparativ cu Praid (neglijarea vulnerabilităților), Slănic a beneficiat de intervenții post-1994.</li>
+                    <li>Riscul unui eveniment hidrologic major la Slănic nu poate fi exclus.</li>
+                    <li>Sunt necesare investigații tehnice detaliate, monitorizare extinsă și o abordare proactivă.</li>
+                </ul>
+            `
+        },
+        {
+            title: "Introducere",
+            content: `
+                <h3 class="text-xl font-semibold text-indigo-600 mb-3">Context și Importanță</h3>
+                <p class="mb-3">Salinele din România sunt obiective economice, turistice și balneare de importanță națională. Evenimentul de la Salina Praid (mai 2025) a subliniat vulnerabilitatea acestor structuri.</p>
+                <p class="mb-4">Această analiză răspunde îngrijorărilor publice privind Salina Slănic, în special Mina Mihai și proximitatea râului Slănic.</p>
+                <h3 class="text-xl font-semibold text-indigo-600 mb-3">Obiectivele Raportului</h3>
+                <ul class="list-disc pl-5 space-y-2 mb-4">
+                    <li>Analiza cauzelor și consecințelor dezastrului de la Salina Praid.</li>
+                    <li>Evaluarea contextului geologic, hidrogeologic și istoric al Salinei Slănic.</li>
+                    <li>Identificarea vulnerabilităților specifice (focus Mina Mihai).</li>
+                    <li>Evaluare comparativă a riscurilor Praid vs. Slănic.</li>
+                    <li>Formularea de concluzii și recomandări.</li>
+                </ul>
+                <h3 class="text-xl font-semibold text-indigo-600 mb-3">Metodologie</h3>
+                <p>Analiza critică a informațiilor din surse deschise: articole de presă, documente tehnice/științifice, rapoarte oficiale.</p>
+            `
+        },
+        {
+            title: "Analiza Incidentului Salina Praid (Mai 2025) - Cauze",
+            content: `
+                <ul class="list-disc pl-5 space-y-3">
+                    <li><b>Precipitații abundente și creșterea debitului râului Corund:</b> Factor declanșator direct, suprasolicitând drenajul și infrastructura.</li>
+                    <li><b>Infiltrarea apei din râu în masivul de sare:</b> Printr-o pâlnie naturală sub albia Corundului și fisuri în masivul de sare. Geologii au sugerat devierea râului.</li>
+                    <li><b>Vulnerabilități structurale și probleme cunoscute anterior:</b>
+                        <ul class="list-circle pl-6 mt-1 space-y-1">
+                            <li>Infiltrații cunoscute din 2007, puncte vulnerabile identificate înainte de 2008.</li>
+                            <li>Lucrări de cimentare a fisurilor (esențiale) demarate în 2012, dar abandonate și nefinalizate.</li>
+                        </ul>
+                    </li>
+                    <li><b>Cedarea digului subteran:</b> Presiunea apei a dus la cedarea unui dig, permițând pătrunderea necontrolată a apei.</li>
+                </ul>
+            `
+        },
+        {
+            title: "Salina Praid - Consecințe și Lecții Învățate",
+            content: `
+                <h3 class="text-xl font-semibold text-indigo-600 mb-3">Consecințe Dezastru Praid</h3>
+                <ul class="list-disc pl-5 space-y-2 mb-4">
+                    <li><b>Pagube materiale și operaționale:</b> Pierderea unui sector minier, stocuri și echipamente inundate; 7 din 10 mine afectate.</li>
+                    <li><b>Suspendarea activităților:</b> Turistică și de producție întrerupte pe termen nedefinit.</li>
+                    <li><b>Riscuri geotehnice majore:</b> Temeri de prăbușire a salinei, dizolvarea continuă a sării, instabilitate generalizată.</li>
+                    <li><b>Impact socio-economic:</b> Pierderi pentru Salrom, impact asupra comunității locale.</li>
+                </ul>
+                <h3 class="text-xl font-semibold text-indigo-600 mb-3">Lecții Învățate din Cazul Praid</h3>
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li>Importanța monitorizării continue și riguroase în zone cu risc hidrogeologic.</li>
+                    <li>Necesitatea finalizării lucrărilor de consolidare și remediere. Abandonarea lor este catastrofală.</li>
+                    <li>Rolul critic al managementului apelor de suprafață (ex: devierea cursurilor de apă).</li>
+                    <li>Consecințele grave ale inacțiunii pe termen lung în fața vulnerabilităților cunoscute.</li>
+                </ol>
+            `
+        },
+        {
+            title: "Salina Slănic: Context Geologic și Hidrogeologic",
+            content: `
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Zăcământ de sare gemă (Badenian mediu) în sinclinalul Slănic, grosime max. 499 m.</li>
+                    <li>Structură complexă: sinclinal cutat și fragmentat de falii, creând căi pentru circulația apei.</li>
+                    <li>Sarea: halit (95%), masă compactă, dar cu intercalații de argile, anhidrit, gips, etc., ce pot afecta permeabilitatea și stabilitatea.</li>
+                    <li>Regim hidrologic dominat de râul Slănic (afluent Teleajen). Precipitații medii: 812 mm/an.</li>
+                    <li>Prezența cursurilor temporare, izvoare, lacuri saline (ex: Baia Verde în ocne vechi prăbușite).</li>
+                    <li>Circulație activă a apelor subterane: pe contactul masivului de sare și prin fisuri interne.
+                        <ul class="list-circle pl-6 mt-1">
+                            <li>Evidențiată prin studii cu trasori.</li>
+                            <li>Pericol major: fracturi transversale intersectând albia râului Slănic și acumulările de apă din vechile ocne.</li>
+                        </ul>
+                    </li>
+                    <li>Confirmarea conexiunii hidraulice între apele de suprafață și lucrările miniere.</li>
+                </ul>
+            `
+        },
+        {
+            title: "Salina Slănic: Istoricul Exploatării și Mine Relevante",
+            content: `
+                <h3 class="text-lg font-semibold text-indigo-600 mb-2">Mine Principale:</h3>
+                <ul class="list-disc pl-5 space-y-1 mb-3">
+                    <li><b>Mina Carol (Principatele Unite):</b> Exploatată 1881 - 1935.</li>
+                    <li><b>Mina Mihai (23 August):</b> Exploatată 1912 - 1943.
+                        <ul class="list-circle pl-6 mt-1">
+                            <li>6 camere trapezoidale, înălțime ~60-66 m, lățime bază 37 m, tavan 12 m.</li>
+                        </ul>
+                    </li>
+                    <li><b>Mina Unirea:</b> Deschisă 1938, exploatată 1943 - 1970 (actual circuit turistic).
+                        <ul class="list-circle pl-6 mt-1">
+                            <li>14 camere trapezoidale, înălțime 54 m. Adâncime turistică 208 m.</li>
+                            <li>Tavanul Minei Unirea este la 26 m sub podeaua Minei Mihai.</li>
+                        </ul>
+                    </li>
+                </ul>
+                <h3 class="text-lg font-semibold text-indigo-600 mb-2">Focus pe Mina Mihai:</h3>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li>Situată deasupra Minei Unirea, deci mai aproape de suprafață și mai vulnerabilă.</li>
+                    <li>Afirmație cheie: <b>Mina Mihai se află "fix sub albia râului Slănic".</b></li>
+                    <li>Localizarea directă sub râu face ca integritatea tavanului său și a stratului protector să fie crucială.</li>
+                    <li>Adâncimea tavanului Minei Mihai față de albia râului:
+                        <ul class="list-circle pl-6 mt-1">
+                            <li>Estimare utilizator: ~30-40 m (neconfirmată direct în surse).</li>
+                            <li>Calcul aproximativ bazat pe date limitate: ~68 m.</li>
+                            <li>Discrepanța subliniază nevoia de date geotehnice precise și actualizate.</li>
+                        </ul>
+                    </li>
+                </ul>
+            `
+        },
+        {
+            title: "Salina Slănic: Istoricul Incidentelor Majore",
+            content: `
+                <ul class="list-disc pl-5 space-y-3">
+                    <li><b>Inundația Minei Unirea (1994):</b> Cel mai grav incident. Ape freatice/pluviale infiltrate prin Puțul 23 August. Formare de caverne prin dizolvarea sării. Risc de închidere definitivă.
+                        <ul class="list-circle pl-6 mt-1">
+                            <li>Măsuri post-1994 (durată 4 ani): betonarea Puțului 23 August, betonarea/regularizarea albiei râului Slănic, plombare goluri.</li>
+                        </ul>
+                    </li>
+                    <li><b>Surparea străzii 23 August (aprilie 2024):</b> Cauze: infiltrații de apă superficiale. Raport preliminar: fără legătură directă cu masivul de sare de adâncime, dar indică prezența apei în subteranul superficial.</li>
+                    <li><b>Inundația unei mine și deversare apă sărată (iulie 2024):</b> Mină nespecificată inundată, Salrom deversează apa în pârâul Slănic ("dezastru ecologic" local). Confirmă probleme active de infiltrație.</li>
+                    <li><b>Tasări de teren și afectarea locuințelor (noiembrie 2023):</b> Crăpături la case deasupra galeriilor. Primar: "apa dulce e cel mai mare dușman pentru sare". Indică posibile procese de instabilitate în subteran.</li>
+                </ul>
+            `
+        },
+        {
+            title: "Tabel Incidente Hidrogeologice și de Instabilitate (Slănic)",
+            content: `
+                <div class="table-container overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-300 bg-white shadow-md rounded-lg">
+                        <thead class="bg-indigo-100">
+                            <tr>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">An</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Descriere Incident</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Mină Afectată</th>
+                                <th scope="col" class="px-4 py-3 text-left text-xs font-semibold text-indigo-700 uppercase tracking-wider">Cauze Probabile</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200 text-sm text-gray-700">
+                            <tr>
+                                <td class="px-4 py-3">1994</td>
+                                <td class="px-4 py-3">Inundație masivă, risc închidere</td>
+                                <td class="px-4 py-3">Mina Unirea</td>
+                                <td class="px-4 py-3">Ape freatice/pluviale prin Puțul 23 August</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">Noi. 2023</td>
+                                <td class="px-4 py-3">Tasări teren, crăpături locuințe</td>
+                                <td class="px-4 py-3">Zona de suprafață</td>
+                                <td class="px-4 py-3">Posibil dizolvarea sării de apa dulce</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">Apr. 2024</td>
+                                <td class="px-4 py-3">Surpare str. 23 August</td>
+                                <td class="px-4 py-3">Zona de suprafață</td>
+                                <td class="px-4 py-3">Infiltrații apă (precipitații, conducte)</td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3">Iul. 2024</td>
+                                <td class="px-4 py-3">Inundare mină, deversare apă sărată</td>
+                                <td class="px-4 py-3">Nespecificat</td>
+                                <td class="px-4 py-3">Infiltrații de apă în mină</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mt-3 text-xs text-gray-600">Tabelul sintetizează principalele evenimente, demonstrând o recurență a problemelor legate de apă și stabilitate.</p>
+            `
+        },
+        {
+            title: "Starea Lucrărilor de Protecție și Monitorizare (Slănic)",
+            content: `
+                <ul class="list-disc pl-5 space-y-3">
+                    <li><b>Eficacitatea măsurilor post-1994:</b> Betonarea albiei râului Slănic și a Puțului 23 August este cheia. Starea actuală și eficacitatea pe termen lung sunt limitat cunoscute public.</li>
+                    <li><b>Lucrări menționate:</b> Refacere susținere Puț Carol, consolidare/impermeabilizare teren, analize de stabilitate (Onica Ilie) – detalii specifice și actualitate neclare pentru riscul Mina Mihai/râu.</li>
+                    <li><b>Monitorizare și intervenție:</b>
+                        <ul class="list-circle pl-6 mt-1 space-y-1">
+                            <li>Salrom (iul. 2024): "monitorizare zilnică", "nicio infiltrație în Mina Unirea/Cantacuzino" – parțial contrazisă de incidentul deversării.</li>
+                            <li>După surparea străzii (apr. 2024): martori topografici, expertiză, monitorizare permanentă zonă.</li>
+                            <li>INSEMEX (2023): contract pentru regim gaze Mina Cantacuzino, nu studii specifice risc inundație Mina Mihai.</li>
+                        </ul>
+                    </li>
+                    <li><b>Discrepanță:</b> Între asigurări oficiale de monitorizare și lipsa transparenței publice privind metodologia, parametrii, rezultatele și starea infrastructurii de protecție (veche de ~30 ani).</li>
+                    <li><b>Sugestie:</b> Incidentele recente și istoricul sugerează că monitorizarea și protecția actuale ar putea să nu acopere adecvat toate riscurile, mai ales interacțiunea râu Slănic - Mina Mihai.</li>
+                </ul>
+            `
+        },
+        {
+            title: "Evaluare Comparativă: Praid vs. Slănic",
+            content: `
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-600 mb-2">Similarități</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
+                            <li>Natura zăcământului (sare gemă, solubilă).</li>
+                            <li>Proximitatea cursurilor de apă (Corund la Praid, Slănic la Slănic).</li>
+                            <li>Vulnerabilitate la precipitații extreme.</li>
+                            <li>Prezența lucrărilor miniere vechi (potențiale căi de infiltrație).</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-600 mb-2">Diferențe</h3>
+                        <ul class="list-disc pl-5 space-y-1 text-sm">
+                            <li>Context geologic specific (structură, adâncime zăcământ).</li>
+                            <li><b>Istoricul intervențiilor hidrotehnice:</b>
+                                <ul class="list-circle pl-5 mt-1">
+                                    <li>Slănic: lucrări ample post-1994 (betonare albie râu, puț).</li>
+                                    <li>Praid: lucrări de cimentare abandonate; deviere râu neimplementată.</li>
+                                </ul>
+                            </li>
+                            <li>Adâncimea galeriilor vulnerabile și stratul protector (probabil diferite).</li>
+                            <li>Sisteme de monitorizare (posibil diferite, detalii limitate).</li>
+                        </ul>
+                    </div>
+                </div>
+            `
+        },
+        {
+            title: "Specificul Riscului la Mina Mihai (Slănic)",
+            content: `
+                <p class="mb-3">Riscul principal și cel mai direct la Salina Slănic este concentrat asupra Minei Mihai, determinat de:</p>
+                <ul class="list-disc pl-5 space-y-2 mb-4">
+                    <li><b>Poziționarea directă sub albia râului Slănic:</b> Expunere directă la hazard hidrologic.</li>
+                    <li><b>Adâncimea redusă:</b> Mai aproape de suprafață, strat protector natural potențial mai subțire.</li>
+                    <li><b>Dependența critică de bariere:</b> Integritatea betonării albiei (veche) și a rocii naturale sub râu.</li>
+                    <li><b>Lipsa datelor actualizate:</b> Incertitudine majoră privind starea betonării, grosimea/calitatea stratului protector, starea puțurilor vechi.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-indigo-600 mb-2">Mecanisme Principale de Risc pentru Mina Mihai:</h3>
+                <ol class="list-decimal pl-5 space-y-1 text-sm">
+                    <li>Deteriorarea/cedarea betonării albiei râului.</li>
+                    <li>Eroziunea/fisurarea stratului natural de rocă sub râu.</li>
+                    <li>Reactivarea unor vechi lucrări miniere neetanșate (puțuri, foraje).</li>
+                    <li>Prezența fracturilor geologice transversale intersectând albia și tavanul minei.</li>
+                </ol>
+                <p class="mt-3">O breșă, mai ales la viitură, ar putea inunda rapid Mina Mihai. Necesită investigație prioritară.</p>
+            `
+        },
+        {
+            title: "Se Poate Repeta Dezastrul de la Praid la Slănic?",
+            content: `
+                <h3 class="text-lg font-semibold text-indigo-600 mb-2">Factori de Risc Semnificativi la Slănic:</h3>
+                <ul class="list-disc pl-5 space-y-1 mb-3 text-sm">
+                    <li>Râul Slănic direct deasupra Minei Mihai.</li>
+                    <li>Istoric de infiltrații și inundații (ex: 1994).</li>
+                    <li>Stare incertă a lucrărilor de protecție vechi (betonarea albiei).</li>
+                    <li>Incidente recente de instabilitate (surpare stradă, crăpare case, inundare mină iul. 2024).</li>
+                    <li>Potențialul unor evenimente pluviometrice extreme.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-indigo-600 mb-2">Elemente Atenuante (Comparativ cu Praid pre-dezastru):</h3>
+                <ul class="list-disc pl-5 space-y-1 mb-3 text-sm">
+                    <li>Salina Slănic a beneficiat de măsuri preventive post-1994 (betonare albie, puț).
+                        <ul class="list-circle pl-5 mt-1">
+                            <li>La Praid, lucrări similare au fost abandonate sau neimplementate.</li>
+                        </ul>
+                    </li>
+                    <li>Dacă aceste lucrări sunt încă funcționale, oferă un grad de protecție.</li>
+                </ul>
+                <h3 class="text-lg font-semibold text-indigo-600 mb-2">Evaluarea Probabilității:</h3>
+                <p class="mb-2 text-sm">Vechimea lucrărilor (~30 ani), lipsa datelor publice despre mentenanță și incidentele noi sugerează că eficacitatea lor pe termen lung poate fi diminuată.</p>
+                <p class="mb-2 text-sm">Riscul la Mina Mihai depinde critic de integritatea actuală a barierei artificiale (betonare) și naturale (rocă).</p>
+                <p class="font-semibold text-red-600 text-sm">Concluzie: Deși un dezastru *identic* cu Praid poate fi mai puțin probabil *dacă* lucrările sunt eficiente, riscul unei inundații semnificative la Slănic (cu consecințe grave) rămâne real și trebuie tratat cu maximă seriozitate. Vulnerabilitățile justifică alertă și acțiune preventivă imediată.</p>
+            `
+        },
+        {
+            title: "Concluzii Principale",
+            content: `
+                <ol class="list-decimal pl-5 space-y-2">
+                    <li><b>Vulnerabilitate Hidrogeologică Persistentă:</b> Salina Slănic este demonstrat vulnerabilă la infiltrații (râu, pânze freatice), exacerbate de structura geologică faliată.</li>
+                    <li><b>Risc Specific la Mina Mihai:</b> Poziționarea sub râul Slănic și adâncimea relativ mică o fac punctul cel mai critic.</li>
+                    <li><b>Incertitudine privind Lucrările de Protecție:</b> Starea și eficacitatea betonării albiei râului (veche de ~30 ani) sunt necunoscute public.</li>
+                    <li><b>Istoric de Incidente:</b> Inundația din 1994, problemele de suprafață (2023-2024), inundarea unei mine (iul. 2024) indică o dinamică activă.</li>
+                    <li><b>Lacune Informaționale Critice:</b> Lipsesc date tehnice precise și actualizate despre:
+                        <ul class="list-disc pl-6 mt-1 text-sm">
+                            <li>Stratul de rocă sub râu (grosime, caracteristici).</li>
+                            <li>Starea betonării albiei.</li>
+                            <li>Localizarea/etanșarea vechilor lucrări miniere.</li>
+                            <li>Detaliile programelor de monitorizare Salrom.</li>
+                        </ul>
+                    </li>
+                    <li><b>Paralelism Limitat cu Praid:</b> Betonarea la Slănic e o diferență, dar lecțiile de la Praid (consecințe inacțiune) sunt aplicabile.</li>
+                </ol>
+            `
+        },
+        {
+            title: "Recomandări Urgente (Partea 1)",
+            content: `
+                <p class="mb-3">Implementare imediată necesară:</p>
+                <ol class="list-decimal pl-5 space-y-3">
+                    <li><b>Inspecție Tehnică Detaliată a Albiei Râului Slănic:</b>
+                        <ul class="list-disc pl-6 mt-1 text-sm">
+                            <li>Vizuală și cu echipamente specializate (ex: georadar) pe tronsonul betonat, focus zona Mina Mihai.</li>
+                            <li>Identificare fisuri, deteriorări, subminări.</li>
+                        </ul>
+                    </li>
+                    <li><b>Investigații Geotehnice și Hidrogeologice pentru Mina Mihai:</b>
+                        <ul class="list-disc pl-6 mt-1 text-sm">
+                            <li>Determinare precisă: grosime/caracteristici strat rocă sub râu (foraje, teste in-situ).</li>
+                            <li>Adâncime exactă tavan Mina Mihai față de albia râului.</li>
+                            <li>Cartografiere rețele de fracturi.</li>
+                        </ul>
+                    </li>
+                </ol>
+            `
+        },
+        {
+            title: "Recomandări Urgente (Partea 2)",
+            content: `
+                <ol start="3" class="list-decimal pl-5 space-y-3">
+                    <li><b>Verificarea și Etanșarea Lucrărilor Miniere Vechi:</b>
+                        <ul class="list-disc pl-6 mt-1 text-sm">
+                            <li>Identificare (planuri istorice, investigații teren) puțuri vechi, galerii, foraje ce pot intersecta Mina Mihai sau crea căi hidraulice.</li>
+                            <li>Verificare etanșare și lucrări de închidere/impermeabilizare definitivă unde e necesar.</li>
+                        </ul>
+                    </li>
+                    <li><b>Revizuirea și Intensificarea Sistemului de Monitorizare:</b>
+                        <ul class="list-disc pl-6 mt-1 text-sm">
+                            <li>Rețea densă de piezometre (Mina Mihai) pentru nivel/presiune apă freatică.</li>
+                            <li>Monitorizare continuă debit/chimism râu Slănic.</li>
+                            <li>Sisteme monitorizare stabilitate tavan Mina Mihai (dacă e fezabil).</li>
+                            <li>Extindere monitorizare tasări/deformații la suprafață (InSAR, GPS).</li>
+                            <li>Stabilire praguri de alertă clare.</li>
+                        </ul>
+                    </li>
+                </ol>
+            `
+        },
+        {
+            title: "Recomandări pe Termen Mediu și Lung",
+            content: `
+                <ol class="list-decimal pl-5 space-y-3">
+                    <li><b>Studiu de Risc Hidrogeologic Actualizat:</b> Complex, pentru întregul perimetru Salina Slănic. Modelare scenarii de hazard (precipitații extreme, viituri, cedare protecții) și evaluare impact.</li>
+                    <li><b>Lucrări Suplimentare de Consolidare/Impermeabilizare:</b> Pe baza investigațiilor urgente, analiză fezabilitate pentru:
+                        <ul class="list-disc pl-6 mt-1 text-sm">
+                            <li>Consolidare tavan Mina Mihai.</li>
+                            <li>Reabilitare/ranforsare betonare albie râu.</li>
+                            <li>Noi bariere impermeabile (ex: voal de etanșare).</li>
+                        </ul>
+                    </li>
+                    <li><b>Plan de Management al Riscului de Inundații:</b> Detaliat, cu proceduri clare de alertare, evacuare, intervenție.</li>
+                    <li><b>Transparență și Comunicare Publică:</b> Regulată, către public și autorități, privind monitorizări, stare infrastructură, riscuri, măsuri.</li>
+                </ol>
+            `
+        },
+        {
+            title: "Necesitatea Acțiunii Proactive & Încheiere",
+            content: `
+                <p class="mb-4">Dezastrul de la Salina Praid a demonstrat consecințele grave ale unei abordări reactive sau insuficient de riguroase în fața riscurilor geotehnice și hidrogeologice complexe.</p>
+                <p class="mb-4">Lecțiile învățate trebuie să determine o schimbare de paradigmă către o gestionare proactivă, bazată pe investigații continue, monitorizare avansată și intervenții preventive.</p>
+                <blockquote class="border-l-4 border-indigo-500 pl-4 py-2 my-4 bg-indigo-50 text-indigo-700 italic">
+                    Costurile financiare, sociale și de mediu ale prevenirii sunt incomparabil mai mici decât cele asociate unui dezastru.
+                </blockquote>
+                <p class="font-semibold text-xl text-center text-indigo-800 mt-6">Siguranța Salinei Slănic, a angajaților săi, a turiștilor și a comunității locale trebuie să reprezinte prioritatea absolută.</p>
+                 <p class="text-xs text-gray-500 mt-8 text-center">Referințele detaliate se găsesc în raportul complet pe baza căruia a fost realizată această prezentare.</p>
+            `
+        }
+    ];
+
+    let currentSlide = 0;
+    const slidesContainer = document.getElementById('slides-container');
+    const sidebar = document.getElementById('sidebar');
+    const progressBar = document.getElementById('progress-bar');
+    const prevButton = document.getElementById('prev-slide');
+    const nextButton = document.getElementById('next-slide');
+    const currentSlideIndicator = document.getElementById('current-slide-indicator');
+    
+    const searchBtn = document.getElementById('search-btn');
+    const searchModal = document.getElementById('search-modal');
+    const closeSearchModalBtn = document.getElementById('close-search-modal-btn');
+    const searchInput = document.getElementById('search-input');
+    const searchModalResultsList = document.getElementById('search-modal-results-list');
+    const noResultsMsg = document.getElementById('no-results-msg');
+
+    const menuBtn = document.getElementById('menu-btn');
+    const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+    const sidebarContainer = document.getElementById('sidebar-container');
+
+    let previouslyFocusedElement;
+
+
+    function initializeSlides() {
+        slidesData.forEach((slideData, index) => {
+            const slideElement = document.createElement('div');
+            // Clasa .slide nu mai are padding, acesta e pe wrapper-ul intern
+            // .slide.active va fi flex flex-col h-full (din CSS)
+            slideElement.className = 'slide bg-white rounded-lg shadow-xl'; 
+            slideElement.innerHTML = `
+                <div class="slide-content-wrapper p-6 md:p-10 lg:p-12"> <!-- Wrapper pentru titlu și conținut, cu padding -->
+                    <h2 class="text-2xl md:text-3xl font-bold text-indigo-700 mb-4 md:mb-6">${slideData.title}</h2>
+                    <div class="slide-main-content text-gray-800 space-y-3 md:space-y-4 text-sm md:text-base leading-relaxed">
+                        ${slideData.content}
+                    </div>
+                </div>
+                <div class="page-number-container"> <!-- Container dedicat pentru numărul paginii -->
+                    <p class="text-xs text-gray-500">${index + 1} / ${slidesData.length}</p>
+                </div>
+            `;
+            slidesContainer.appendChild(slideElement);
+
+            const listItem = document.createElement('li');
+            const link = document.createElement('button');
+            link.className = 'sidebar-button';
+            link.textContent = `${index + 1}. ${slideData.title.substring(0,25)}${slideData.title.length > 25 ? '...' : ''}`;
+            link.onclick = () => {
+                showSlide(index);
+                if (window.innerWidth < 768) {
+                    sidebarContainer.classList.add('-translate-x-full');
+                }
+            };
+            link.setAttribute('data-slide-index', index);
+            listItem.appendChild(link);
+            sidebar.appendChild(listItem);
+        });
+    }
+
+    function updateProgressBar() {
+        const progress = ((currentSlide + 1) / slidesData.length) * 100;
+        progressBar.style.width = `${progress}%`;
+        currentSlideIndicator.textContent = `Slide ${currentSlide + 1} / ${slidesData.length}`;
+    }
+
+    function updateSidebarActiveLink() {
+        const links = sidebar.querySelectorAll('button');
+        links.forEach(link => {
+            if (parseInt(link.getAttribute('data-slide-index')) === currentSlide) {
+                link.classList.add('active-sidebar-link');
+                link.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } else {
+                link.classList.remove('active-sidebar-link');
+            }
+        });
+    }
+    
+    function showSlide(index) {
+        const allSlides = slidesContainer.querySelectorAll('.slide');
+        allSlides.forEach((s, i) => {
+            if (i === index) {
+                s.classList.add('active');
+            } else {
+                s.classList.remove('active');
+            }
+        });
+        currentSlide = index;
+        updateProgressBar();
+        updateNavigationButtons();
+        updateSidebarActiveLink();
+        
+        requestAnimationFrame(() => {
+            // Scroll-ul containerului principal la 0 (dacă era cumva scrollat, deși nu ar trebui)
+            slidesContainer.scrollTop = 0; 
+            // Scroll-ul intern al wrapper-ului de conținut al noului slide la 0
+            const activeSlideContentWrapper = allSlides[index].querySelector('.slide-content-wrapper');
+            if (activeSlideContentWrapper) {
+                activeSlideContentWrapper.scrollTop = 0;
+            }
+        });
+    }
+
+    function updateNavigationButtons() {
+        prevButton.disabled = currentSlide === 0;
+        nextButton.disabled = currentSlide === slidesData.length - 1;
+    }
+
+    prevButton.addEventListener('click', () => {
+        if (currentSlide > 0) {
+            showSlide(currentSlide - 1);
+        }
+    });
+
+    nextButton.addEventListener('click', () => {
+        if (currentSlide < slidesData.length - 1) {
+            showSlide(currentSlide + 1);
+        }
+    });
+    
+    function openSearchModal() {
+        previouslyFocusedElement = document.activeElement;
+        searchModal.classList.remove('hidden');
+        searchInput.focus();
+        performSearch();
+    }
+
+    function closeSearchModal() {
+        searchModal.classList.add('hidden');
+        if (previouslyFocusedElement) {
+            previouslyFocusedElement.focus();
+        }
+    }
+
+    searchBtn.addEventListener('click', openSearchModal);
+    closeSearchModalBtn.addEventListener('click', closeSearchModal);
+    
+    searchModal.addEventListener('click', (e) => {
+        if (e.target === searchModal) {
+            closeSearchModal();
+        }
+    });
+
+    searchInput.addEventListener('input', performSearch);
+
+    function performSearch() {
+        const query = searchInput.value.toLowerCase().trim();
+        searchModalResultsList.innerHTML = ''; 
+        let resultsFound = false;
+
+        if (query === "") {
+            slidesData.forEach((slide, index) => {
+                 const listItem = document.createElement('li');
+                 const button = document.createElement('button');
+                 button.className = 'w-full text-left p-2 hover:bg-indigo-100 rounded-md text-sm';
+                 const title = `${index + 1}. ${slide.title}`;
+                 button.textContent = title;
+                 button.onclick = () => {
+                     showSlide(index);
+                     closeSearchModal();
+                 };
+                 listItem.appendChild(button);
+                 searchModalResultsList.appendChild(listItem);
+                 resultsFound = true;
+            });
+        } else {
+            slidesData.forEach((slide, index) => {
+                const slideText = (slide.title + " " + slide.content).toLowerCase();
+                if (slideText.includes(query)) {
+                    resultsFound = true;
+                    const listItem = document.createElement('li');
+                    const button = document.createElement('button');
+                    button.className = 'w-full text-left p-2 hover:bg-indigo-100 rounded-md text-sm';
+                    
+                    let title = `${index + 1}. ${slide.title}`;
+                    const regex = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                    const highlightedTitle = title.replace(regex, `<span class="highlight">$&</span>`);
+                    button.innerHTML = highlightedTitle;
+
+                    button.onclick = () => {
+                        showSlide(index);
+                        closeSearchModal();
+                    };
+                    listItem.appendChild(button);
+                    searchModalResultsList.appendChild(listItem);
+                }
+            });
+        }
+        noResultsMsg.classList.toggle('hidden', resultsFound);
+    }
+    
+    menuBtn.addEventListener('click', () => {
+        sidebarContainer.classList.remove('-translate-x-full');
+    });
+
+    closeSidebarBtn.addEventListener('click', () => {
+        sidebarContainer.classList.add('-translate-x-full');
+    });
+    
+    document.addEventListener('click', function(event) {
+        const isClickInsideSidebar = sidebarContainer.contains(event.target);
+        const isClickOnMenuButton = menuBtn.contains(event.target);
+
+        if (!isClickInsideSidebar && !isClickOnMenuButton && window.innerWidth < 768) {
+            if (!sidebarContainer.classList.contains('-translate-x-full')) {
+                 sidebarContainer.classList.add('-translate-x-full');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !searchModal.classList.contains('hidden')) {
+            closeSearchModal();
+            return; 
+        }
+        if (searchModal.classList.contains('hidden')) { 
+            if (e.key === 'ArrowRight' && !nextButton.disabled) { // Verifică și starea disabled a butonului
+                nextButton.click();
+            } else if (e.key === 'ArrowLeft' && !prevButton.disabled) { // Verifică și starea disabled
+                prevButton.click();
+            }
+        }
+    });
+
+    initializeSlides();
+    showSlide(0);
+
+</script>
+</body>
+</html>
